@@ -1,0 +1,12 @@
+flask
+flask-cors
+torch
+torchvision
+nibabel
+numpy
+opencv-python
+scipy
+matplotlib
+plotly
+pandas
+scikit-image

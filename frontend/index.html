@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroForecaster AI | Brain Tumor Prognosis</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+
+    <!-- Info Floating Button -->
+    <button class="info-btn" onclick="toggleModal('info-modal')">
+        <i class="fa-solid fa-circle-info"></i>
+    </button>
+
+    <!-- Technical Info Modal -->
+    <div id="info-modal" class="modal-overlay">
+        <div class="glass-card modal-content">
+            <button class="close-btn" onclick="toggleModal('info-modal')">&times;</button>
+            <h2 class="modal-title">Research Technical Specification</h2>
+            
+            <div class="modal-body">
+                <section>
+                    <h3><i class="fa-solid fa-layer-group"></i> Architecture: 3D Residual U-Net</h3>
+                    <p>The system utilizes a 3D U-Net architecture. It features residual connections to prevent vanishing gradients and multi-scale feature extraction for global context.</p>
+                </section>
+
+                <section>
+                    <h3><i class="fa-solid fa-flask"></i> Multi-Modal Fusion</h3>
+                    <p>Performs <strong>Concatenative Fusion</strong> of FLAIR, T1, T1CE, and T2 sequences to differentiate between edema, enhancing tumor, and necrotic core.</p>
+                </section>
+
+                <section>
+                    <h3><i class="fa-solid fa-infinity"></i> Mathematical & Physics Foundations</h3>
+                    <ul>
+                        <li><strong>Segmentation Loss (Dice Coefficient):</strong> Used to handle class imbalance:
+                            <div class="math-block">\[ DSC = \frac{2 |A \cap B|}{|A| + |B|} \]</div>
+                        </li>
+                        <li><strong>Tumor Kinetics (Fisher-KPP):</strong> Models biological infiltration:
+                            <div class="math-block">\[ \frac{\partial u}{\partial t} = D \nabla^2 u + \rho u(1-u) \]</div>
+                        </li>
+                        <li><strong>Explainability:</strong> Grad-CAM highlights anatomical regions influencing the AI's prognosis.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3><i class="fa-solid fa-star"></i> Core System Features</h3>
+                    <div class="features-list">
+                        <div class="feat-item"><i class="fa-solid fa-check"></i> High-Precision 3D Segmentation</div>
+                        <div class="feat-item"><i class="fa-solid fa-check"></i> Spatio-temporal Progression Forecasting</div>
+                        <div class="feat-item"><i class="fa-solid fa-check"></i> Volumetric Quantitative Analytics (mm³)</div>
+                        <div class="feat-item"><i class="fa-solid fa-check"></i> Research-grade Report Generation</div>
+                        <div class="feat-item"><i class="fa-solid fa-check"></i> Explainable AI Heatmaps</div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <h1>AI-Based Brain Tumor Progression Forecasting and Prognosis System</h1>
+        <p class="subtitle">Advanced multimodal MRI segmentation, future spread estimation, and explainable AI-driven computational prognosis analytics for neuro-oncology research.</p>
+    </header>
+
+    <main>
+        <!-- Upload Section -->
+        <section class="upload-container">
+            <div class="glass-card upload-box" onclick="document.getElementById('flair').click()">
+                <i class="fa-solid fa-brain"></i>
+                <span>FLAIR MRI (.nii)</span>
+                <input type="file" id="flair" accept=".nii">
+                <p id="flair-name" class="file-name"></p>
+            </div>
+            <div class="glass-card upload-box" onclick="document.getElementById('t1').click()">
+                <i class="fa-solid fa-microscope"></i>
+                <span>T1 MRI (.nii)</span>
+                <input type="file" id="t1" accept=".nii">
+                <p id="t1-name" class="file-name"></p>
+            </div>
+            <div class="glass-card upload-box" onclick="document.getElementById('t1ce').click()">
+                <i class="fa-solid fa-circle-dot"></i>
+                <span>T1CE MRI (.nii)</span>
+                <input type="file" id="t1ce" accept=".nii">
+                <p id="t1ce-name" class="file-name"></p>
+            </div>
+            <div class="glass-card upload-box" onclick="document.getElementById('t2').click()">
+                <i class="fa-solid fa-wave-square"></i>
+                <span>T2 MRI (.nii)</span>
+                <input type="file" id="t2" accept=".nii">
+                <p id="t2-name" class="file-name"></p>
+            </div>
+            <button class="btn-process" onclick="processAnalysis()">Run AI Neuro-Analysis Engine</button>
+        </section>
+
+        <!-- Loader -->
+        <div id="loader">
+            <div class="brain-loader"></div>
+            <h2 style="margin-top: 2rem;">AI Inference in Progress...</h2>
+            <p id="status-text">Preprocessing MRI Volumetric Data</p>
+        </div>
+
+        <!-- Dashboard -->
+        <section id="results" class="dashboard">
+            <div class="dashboard-grid">
+                <!-- Visualizations -->
+                <div class="glass-card">
+                    <h3>Current Tumor Segmentation</h3>
+                    <img id="img-seg" class="result-image" src="" alt="Segmentation">
+                </div>
+                <div class="glass-card">
+                    <h3>Future Tumor Spread Map</h3>
+                    <img id="img-spread" class="result-image" src="" alt="Future Spread">
+                </div>
+                <div class="glass-card">
+                    <h3>Explainability AI (Grad-CAM)</h3>
+                    <img id="img-explain" class="result-image" src="" alt="Explainability">
+                </div>
+                <div class="glass-card">
+                    <h3>Progression Difference Map</h3>
+                    <img id="img-diff" class="result-image" src="" alt="Difference">
+                </div>
+            </div>
+
+            <!-- Analytics -->
+            <div class="glass-card" style="margin-top: 2rem;">
+                <h3>Quantitative Prognosis Analytics</h3>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div id="val-vol" class="metric-value">--</div>
+                        <div class="metric-label">Voxel Volume (mm³)</div>
+                    </div>
+                    <div class="metric-item">
+                        <div id="val-future" class="metric-value">--</div>
+                        <div class="metric-label">Est. Future Volume</div>
+                    </div>
+                    <div class="metric-item">
+                        <div id="val-growth" class="metric-value">--</div>
+                        <div class="metric-label">Growth Pct.</div>
+                    </div>
+                    <div class="metric-item">
+                        <div id="val-prob" class="metric-value">--</div>
+                        <div class="metric-label">Recovery Prob.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Metrics -->
+            <div class="glass-card" style="margin-top: 2rem;">
+                <h3>Segmentation Accuracy Metrics</h3>
+                <div class="metrics-grid">
+                    <div class="metric-item"><div id="val-dice" class="metric-value">--</div><div class="metric-label">Dice Score</div></div>
+                    <div class="metric-item"><div id="val-iou" class="metric-value">--</div><div class="metric-label">IoU Score</div></div>
+                    <div class="metric-item"><div id="val-prec" class="metric-value">--</div><div class="metric-label">Precision</div></div>
+                    <div class="metric-item"><div id="val-rec" class="metric-value">--</div><div class="metric-label">Recall</div></div>
+                </div>
+            </div>
+
+            <!-- Research Charts -->
+            <div class="charts-container">
+                <div class="glass-card chart-box" id="chart-loss"></div>
+                <div class="glass-card chart-box" id="chart-metrics"></div>
+                <div class="glass-card chart-box" id="chart-3d" style="grid-column: 1 / -1;"></div>
+                <div class="glass-card chart-box" id="chart-growth" style="grid-column: 1 / -1;"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 3rem;">
+                <button id="btn-download" class="btn-process" style="width: auto; padding: 1rem 3rem;">
+                    <i class="fa-solid fa-file-export"></i> Download Research Report Package (.zip)
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer-grid">
+        <!-- Left: Disclaimer Card -->
+        <div class="footer-column">
+            <div class="white-card disclaimer-card">
+                <h4><i class="fa-solid fa-triangle-exclamation"></i> RESEARCH DISCLAIMER</h4>
+                <p>This is an <strong>AI Research Prototype</strong> only. <strong>NOT FOR CLINICAL USE.</strong></p>
+                <p class="academic-context">
+                    This work is developed by <strong>Anshuman Sahoo</strong> towards fulfilling <strong>Master of Technology in Computer Science & Engineering</strong>, DRIEMS University under the guidance & supervision of <strong>Prof. Raghunath Rout</strong>, Associate Professor, Department of CSE.
+                </p>
+            </div>
+        </div>
+
+        <!-- Middle: Tech & License -->
+        <div class="footer-column center-align">
+            <div class="tech-stack">
+                <i class="fa-brands fa-python"></i>
+                <i class="fa-solid fa-fire-flame-curved"></i>
+                <i class="fa-solid fa-microchip"></i>
+            </div>
+            <p>Tech Stack: PyTorch | Flask | Nibabel | Plotly | OpenCV</p>
+            <div class="cc-license">
+                <i class="fa-brands fa-creative-commons"></i>
+                <i class="fa-brands fa-creative-commons-by"></i>
+                <i class="fa-brands fa-creative-commons-nc"></i>
+                <i class="fa-brands fa-creative-commons-sa"></i>
+                <span>CC BY-NC-SA 4.0</span>
+            </div>
+            <p class="copyright">&copy; 2026 NeuroForecaster AI Research Platform</p>
+        </div>
+
+        <!-- Right: Developer & Guide Tabs -->
+        <div class="footer-column">
+            <div class="glass-card info-tabs-card">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchTab(event, 'dev-info')">Researcher</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'guide-info')">Supervisor</button>
+                </div>
+                
+                <div id="dev-info" class="tab-content active">
+                    <h5>Anshuman Sahoo</h5>
+                    <p class="bio">M. Tech in Computer Science & Engineering, DRIEMS University. Specialized in Medical Image Analysis (Neuroscience & Cardiology) and Natural Sciences. IEEE & IWA Member.</p>
+                    <div class="contact">
+                        <a href="mailto:anshuman.sahoo@driems.ac.in"><i class="fa-solid fa-envelope"></i> anshuman.sahoo@driems.ac.in</a>
+                    </div>
+                </div>
+
+                <div id="guide-info" class="tab-content">
+                    <h5>Prof. Raghunath Rout</h5>
+                    <p class="bio">Assistant Professor, SET-CSE, DRIEMS University. 20+ years experience. Research interests: Machine Learning, Sensor Networks, and Soft Computing.</p>
+                    <div class="contact">
+                        <a href="mailto:raghunath.rout@driems.ac.in"><i class="fa-solid fa-envelope"></i> raghunath.rout@driems.ac.in</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
